@@ -50,10 +50,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 </head>
 <style>
     body {
-        background-color: #f8f9fa;
-    }
-
-    body {
         background-image: url("src/background.png");
         background-repeat: no-repeat;
         background-size: cover;

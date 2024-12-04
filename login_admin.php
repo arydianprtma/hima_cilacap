@@ -38,6 +38,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="icon" href="src/logo-poltekkes-Photoroom.png">
 </head>
+<style>
+    body {
+        background-image: url("src/background.png");
+        background-repeat: no-repeat;
+        background-size: cover;
+        background-position: center;
+    }
+</style>    
 <body>
     <div class="container mt-5">
         <div class="row justify-content-center">
