@@ -169,6 +169,7 @@ unset($_SESSION['error_message']);
     <meta charset="UTF-8">
     <title>Dashboard Admin</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="icon" href="src/logo-poltekkes-Photoroom.png">
     <style>
         :root {
             --bg-primary: #f9fafb;
