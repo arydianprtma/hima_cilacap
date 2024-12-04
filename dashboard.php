@@ -26,7 +26,7 @@ if (!$result_kandidat) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HIMA | Poltekes Kemenkes Semarang</title>
+    <title>HIMA | Poltekkes Kemenkes Semarang</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         :root {
@@ -45,13 +45,6 @@ if (!$result_kandidat) {
         body {
             display: flex;
             flex-direction: column; /* Stack children vertically */
-        }
-
-        .container {
-            flex: 1; /* Allow the container to grow and fill the available space */
-        }
-
-        body {
             background-color: var(--bg-primary);
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
             color: var(--text-dark);
@@ -99,7 +92,6 @@ if (!$result_kandidat) {
         }
 
         .candidate-card:hover {
-            transform: translateY(-10px);
             box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
         }
 
@@ -131,14 +123,17 @@ if (!$result_kandidat) {
         }
 
         .vision-mission {
-            max-height: 150px;
-            overflow-y: auto;
-            color: var(--text-light);
-            font-size: 0.9rem;
+            padding: 1rem;
+            text-align: justify; /* Rata kiri */
+        }
+
+        .vision-mission h6 {
+            font-weight: bold;
+            margin-bottom: 1rem;
         }
 
         hr {
-            bordetop: 20px solid var(--text-light);
+            border-top: 3px solid var(--text-light);
             opacity: 1;
             margin: 0;
         }
@@ -189,12 +184,30 @@ if (!$result_kandidat) {
                                 
                                 <div class="vision-mission mb-3">
                                     <h6 class="text-muted">Vision</h6>
-                                    <p><?php echo htmlspecialchars($kandidat['visi'] ?? 'No vision stated'); ?></p>
-                                    
+                                    <?php 
+                                        $visi_points = explode(".", $kandidat['visi'] ?? 'No vision stated');
+                                    ?>
+                                    <ul>
+                                        <?php foreach ($visi_points as $point): ?>
+                                            <?php if (!empty(trim($point))): ?>
+                                                <li><?php echo htmlspecialchars(trim($point)) . '.'; ?></li>
+                                            <?php endif; ?>
+                                        <?php endforeach; ?>
+                                    </ul>
+
                                     <h6 class="text-muted mt-2">Mission</h6>
-                                    <p><?php echo htmlspecialchars($kandidat['misi'] ?? 'No mission stated'); ?></p>
+                                    <?php 
+                                        $misi_points = explode(".", $kandidat['misi'] ?? 'No mission stated');
+                                    ?>
+                                    <ul>
+                                        <?php foreach ($misi_points as $point): ?>
+                                            <?php if (!empty(trim($point))): ?>
+                                                <li><?php echo htmlspecialchars(trim($point)) . '.'; ?></li>
+                                            <?php endif; ?>
+                                        <?php endforeach; ?>
+                                    </ul>
                                 </div>
-                                
+
                                 <div class="text-center">
                                     <a href="voting.php?kandidat_id=<?php echo intval($kandidat['id']); ?>" 
                                        class="btn btn-vote btn-primary px-4">
