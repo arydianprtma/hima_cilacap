@@ -1,5 +1,4 @@
 <?php
-// Start session and include database configuration
 session_start();
 require_once 'config/database.php';
 
@@ -28,6 +27,7 @@ if (!$result_kandidat) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HIMA | Poltekkes Kemenkes Semarang</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="icon" href="src/logo-poltekkes-Photoroom.png">
     <style>
         :root {
             --bg-primary: #f9fafb;
@@ -96,9 +96,9 @@ if (!$result_kandidat) {
         }
 
         .candidate-card-image {
-            height: 250px;
+            height: 300px; /* Set a fixed height */
             width: 100%;
-            object-fit: contain;
+            object-fit: cover; /* Ensure the image covers the area without distortion */
             transition: all 0.3s ease;
         }
 
@@ -169,7 +169,7 @@ if (!$result_kandidat) {
         </div>
     </header>
 
-    <div class="container">
+    <div class="container flex-grow-1">
         <div class="row">
             <?php if ($result_kandidat && mysqli_num_rows($result_kandidat) > 0): ?>
                 <?php while($kandidat = mysqli_fetch_assoc($result_kandidat)) { ?>
@@ -228,7 +228,7 @@ if (!$result_kandidat) {
         </div>
     </div>
 
-    <footer class="text-center py-3">
+    <footer class="text-center py-3" style="position: fixed; bottom: 0; width: 100%;">
         <p>&copy; 2024 Himpunan Mahasiswa Poltekes Kemenkes Semarang. All rights reserved.</p>
     </footer>
 

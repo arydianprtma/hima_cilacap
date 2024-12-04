@@ -189,6 +189,7 @@ unset($_SESSION['error_message']);
             color: white;
             padding: 1rem;
             text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
         }
 
         .footer {
@@ -205,28 +206,49 @@ unset($_SESSION['error_message']);
             border: none;
             border-radius: 12px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
         }
 
         .btn-primary {
             background-color: var(--accent-color);
             border: none;
+            transition: background-color 0.3s, transform 0.2s;
         }
 
         .btn-primary:hover {
             background-color: var(--accent-hover);
+            transform: scale(1.05);
         }
 
         .alert {
             margin-bottom: 20px;
         }
 
-        .card-img-top {
-            background: white;
-            border: none;
+        .modal-content {
             border-radius: 12px;
-            overflow: hidden;
-            transition: all 0.3s ease;
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+        }
+
+        .modal-header {
+            border-bottom: none;
+        }
+
+        .modal-body {
+            padding: 2rem;
+        }
+
+        .form-label {
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .card {
+                margin-bottom: 20px;
+            }
         }
     </style>
 </head>
@@ -238,45 +260,10 @@ unset($_SESSION['error_message']);
     <div class="container mt-5">
         <div class="row">
             <div class="col-md-12">
-                <!-- Menambahkan Kandidat -->
-                <h3>Tambah Kandidat</h3>
-                <?php if ($success_message) { ?>
-                    <div class="alert alert-success"><?php echo $success_message; ?></div>
-                <?php } ?>
-                <?php if ($error_message) { ?>
-                    <div class="alert alert-danger"><?php echo $error_message; ?></div>
-                <?php } ?>
-                <form method="POST" enctype="multipart/form-data">
-                    <div class="mb-3">
-                        <label for="nama" class="form-label">Nama Kandidat</label>
-                        <input type="text" class="form-control" id="nama" name="nama" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="prodi" class="form-label">Prodi</label>
-                        <select class="form-control" id="prodi" name="prodi" required>
-                            <option value="Teknologi Bank Darah">Teknologi Bank Darah</option>
-                            <option value="Teknologi Laboratorium Medis">Teknologi Laboratorium Medis</option>
-                            <option value="Sarjana Terapan Teknologi Laboratorium Medis">Sarjana Terapan Teknologi Laboratorium Medis</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="foto" class="form-label">Foto Kandidat</label>
-                        <input type="file" class="form-control" id="foto" name="foto" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="visi" class="form-label">Visi</label>
-                        <textarea class="form-control" id="visi" name="visi" rows="2" required></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label for="misi" class="form-label">Misi</label>
-                        <textarea class="form-control" id="misi" name="misi" rows="2" required></textarea>
-                    </div>
-                    <button type="submit" name="add_kandidat" class="btn btn-primary">Tambah Kandidat</button>
-                </form>
+                <!-- Tombol untuk Menambah Kandidat -->
+                <button class="btn btn-primary mb-4" data-bs-toggle="modal" data-bs-target="#addCandidateModal">Tambah Kandidat</button>
 
-                <hr>
-
-                <!-- Melihat Kandidat dan Total Voting -->
+                <!-- Card untuk Menampilkan Kandidat -->
                 <h3>Kandidat dan Total Voting</h3>
                 <div class="row">
                     <?php 
@@ -317,7 +304,7 @@ unset($_SESSION['error_message']);
                                                 </div>
                                                 <div class="mb-3">
                                                     <label for="prodi" class="form-label">Prodi</label>
-                                                    <select class="form-control" id="prodi" name="prodi" required>
+                                                    <select class="form-select" id="prodi" name="prodi" required>
                                                         <option value="Teknologi Bank Darah" <?php echo ($kandidat['prodi'] == 'Teknologi Bank Darah') ? 'selected' : ''; ?>>Teknologi Bank Darah</option>
                                                         <option value="Teknologi Laboratorium Medis" <?php echo ($kandidat['prodi'] == 'Teknologi Laboratorium Medis') ? 'selected' : ''; ?>>Teknologi Laboratorium Medis</option>
                                                         <option value="Sarjana Terapan Teknologi Laboratorium Medis" <?php echo ($kandidat['prodi'] == 'Sarjana Terapan Teknologi Laboratorium Medis') ? 'selected' : ''; ?>>Sarjana Terapan Teknologi Laboratorium Medis</option>
@@ -343,6 +330,47 @@ unset($_SESSION['error_message']);
                             </div>
                         </div>
                     <?php } ?>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal untuk Menambah Kandidat -->
+    <div class="modal fade" id="addCandidateModal" tabindex="-1" aria-labelledby="addCandidateModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addCandidateModalLabel">Tambah Kandidat</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label for="nama" class="form-label">Nama Kandidat</label>
+                            <input type="text" class="form-control" id="nama" name="nama" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="prodi" class="form-label">Prodi</label>
+                            <select class="form-select" id="prodi" name="prodi" required>
+                                <option value="Teknologi Bank Darah">Teknologi Bank Darah</option>
+                                <option value="Teknologi Laboratorium Medis">Teknologi Laboratorium Medis</option>
+                                <option value="Sarjana Terapan Teknologi Laboratorium Medis">Sarjana Terapan Teknologi Laboratorium Medis</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="foto" class="form-label">Foto Kandidat</label>
+                            <input type="file" class="form-control" id="foto" name="foto" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="visi" class="form-label">Visi</label>
+                            <textarea class="form-control" id="visi" name="visi" rows="2" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="misi" class="form-label">Misi</label>
+                            <textarea class="form-control" id="misi" name="misi" rows="2" required></textarea>
+                        </div>
+                        <button type="submit" name="add_kandidat" class="btn btn-primary">Tambah Kandidat</button>
+                    </form>
                 </div>
             </div>
         </div>

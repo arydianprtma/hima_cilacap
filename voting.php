@@ -38,7 +38,7 @@ if (isset($_GET['kandidat_id'])) {
     <title>Konfirmasi Voting</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
-    <link rel="icon" href="src/logo-poltekkes.jpg">
+    <link rel="icon" href="src/logo-poltekkes-Photoroom.png">
 </head>
 <body>
     <div class="container mt-5">
