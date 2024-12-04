@@ -8,30 +8,58 @@ if (!isset($_SESSION['admin_id'])) {
     exit();
 }
 
-// Menangani penambahan kandidat
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_kandidat'])) {
+// Proses penambahan kandidat
+if (isset($_POST['add_kandidat'])) {
     $nama = mysqli_real_escape_string($conn, $_POST['nama']);
     $prodi = mysqli_real_escape_string($conn, $_POST['prodi']);
-    $foto = $_FILES['foto']['name'];
     $visi_misi = mysqli_real_escape_string($conn, $_POST['visi_misi']);
-
-    // Upload foto kandidat
-    $target_dir = "uploads/";
+    
+    // Proses upload foto
+    $foto = $_FILES['foto']['name'];
+    $target_dir = "uploads/"; // Pastikan folder ini ada dan dapat ditulis
     $target_file = $target_dir . basename($foto);
-    move_uploaded_file($_FILES['foto']['tmp_name'], $target_file);
+    $uploadOk = 1;
+    $imageFileType = strtolower(pathinfo($target_file, PATHINFO_EXTENSION));
 
-    // Query untuk menambahkan kandidat
-    $query_add_kandidat = "INSERT INTO kandidat (nama, prodi, foto, visi_misi) 
-                           VALUES ('$nama', '$prodi', '$target_file', '$visi_misi')";
+    // Cek apakah file gambar adalah gambar sebenarnya
+    $check = getimagesize($_FILES['foto']['tmp_name']);
+    if ($check === false) {
+        $error_message = "File yang diupload bukan gambar.";
+        $uploadOk = 0;
+    }
 
-    if (mysqli_query($conn, $query_add_kandidat)) {
-        $success_message = "Kandidat berhasil ditambahkan!";
+    // Cek ukuran file
+    if ($_FILES['foto']['size'] > 50000000) { // 500KB
+        $error_message = "Maaf, ukuran file terlalu besar.";
+        $uploadOk = 0;
+    }
+
+    // Izinkan format file tertentu
+    if (!in_array($imageFileType, ['jpg', 'png', 'jpeg', 'gif'])) {
+        $error_message = "Maaf, hanya file JPG, JPEG, PNG & GIF yang diizinkan.";
+        $uploadOk = 0;
+    }
+
+    // Cek apakah $uploadOk diatur ke 0 oleh kesalahan
+    if ($uploadOk == 0) {
+        // Tidak ada yang dilakukan, kesalahan sudah ditangani
     } else {
-        $error_message = "Gagal menambahkan kandidat: " . mysqli_error($conn);
+        // Jika semuanya baik-baik saja, coba untuk mengupload file
+        if (move_uploaded_file($_FILES['foto']['tmp_name'], $target_file)) {
+            // Simpan data kandidat ke database
+            $query = "INSERT INTO kandidat (nama, prodi, foto, visi_misi) VALUES ('$nama', '$prodi', '$target_file', '$visi_misi')";
+            if (mysqli_query($conn, $query)) {
+                $success_message = "Kandidat berhasil ditambahkan.";
+            } else {
+                $error_message = "Terjadi kesalahan saat menambahkan kandidat: " . mysqli_error($conn);
+            }
+        } else {
+            $error_message = "Maaf, terjadi kesalahan saat mengupload file.";
+        }
     }
 }
 
-// Ambil semua kandidat
+// Ambil data kandidat dan total voting
 $query_kandidat = "SELECT * FROM kandidat";
 $result_kandidat = mysqli_query($conn, $query_kandidat);
 
