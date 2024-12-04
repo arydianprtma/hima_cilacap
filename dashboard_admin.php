@@ -2,127 +2,165 @@
 session_start();
 require_once 'config/database.php';
 
-// Cek apakah admin sudah login
+// Check if admin is logged in
 if (!isset($_SESSION['admin_id'])) {
     header("Location: login_admin.php");
     exit();
 }
 
-// Inisialisasi variabel untuk pesan
+// Initialize variables for messages
 $success_message = '';
 $error_message = '';
 
-// Proses penambahan kandidat
-if (isset($_POST['add_kandidat'])) {
+// Process adding candidate
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_kandidat'])) {
     $nama = mysqli_real_escape_string($conn, $_POST['nama']);
     $prodi = mysqli_real_escape_string($conn, $_POST['prodi']);
     $visi = mysqli_real_escape_string($conn, $_POST['visi']);
     $misi = mysqli_real_escape_string($conn, $_POST['misi']);
     
-    // Proses upload foto
+    // Process photo upload
     $foto = $_FILES['foto']['name'];
-    $target_dir = "uploads/"; // Pastikan folder ini ada dan dapat ditulis
-    $target_file = $target_dir . basename($foto);
+    $target_dir = "uploads/"; // Ensure this folder exists and is writable
+    $target_file = $target_dir . uniqid() . '_' . basename($foto); // Add uniqid to prevent duplicate filenames
     $uploadOk = 1;
     $imageFileType = strtolower(pathinfo($target_file, PATHINFO_EXTENSION));
 
-    // Cek apakah file gambar adalah gambar sebenarnya
+    // Check if the uploaded file is an actual image
     $check = getimagesize($_FILES['foto']['tmp_name']);
     if ($check === false) {
-        $error_message = "File yang diupload bukan gambar.";
-        $uploadOk = 0;
+        $_SESSION['error_message'] = "File yang diupload bukan gambar.";
+        header("Location: " . $_SERVER['PHP_SELF']);
+        exit();
     }
 
-    // Cek ukuran file
+    // Check file size
     if ($_FILES['foto']['size'] > 500000) { // 500KB
-        $error_message = "Maaf, ukuran file terlalu besar.";
-        $uploadOk = 0;
+        $_SESSION['error_message'] = "Maaf, ukuran file terlalu besar.";
+        header("Location: " . $_SERVER['PHP_SELF']);
+        exit();
     }
 
-    // Izinkan format file tertentu
+    // Allow certain file formats
     if (!in_array($imageFileType, ['jpg', 'png', 'jpeg', 'gif'])) {
-        $error_message = "Maaf, hanya file JPG, JPEG, PNG & GIF yang diizinkan.";
-        $uploadOk = 0;
+        $_SESSION['error_message'] = "Maaf, hanya file JPG, JPEG, PNG & GIF yang diizinkan.";
+        header("Location: " . $_SERVER['PHP_SELF']);
+        exit();
     }
 
-    // Cek apakah $uploadOk diatur ke 0 oleh kesalahan
-    if ($uploadOk == 0) {
-        // Tidak ada yang dilakukan, kesalahan sudah ditangani
-    } else {
-        // Jika semuanya baik-baik saja, coba untuk mengupload file
-        if (move_uploaded_file($_FILES['foto']['tmp_name'], $target_file)) {
-            // Simpan data kandidat ke database
-            $query = "INSERT INTO kandidat (nama, prodi, foto, visi, misi) VALUES ('$nama', '$prodi', '$target_file', '$visi', '$misi')";
-            if (mysqli_query($conn, $query)) {
-                $_SESSION['success_message'] = "Kandidat berhasil ditambahkan.";
-                // Kosongkan inputan setelah berhasil menambah kandidat
-                $_POST['nama'] = '';
-                $_POST['prodi'] = '';
-                $_POST['visi'] = '';
-                $_POST['misi'] = '';
-            } else {
-                $error_message = "Terjadi kesalahan saat menambahkan kandidat: " . mysqli_error($conn);
-            }
+    // Upload file
+    if (move_uploaded_file($_FILES['foto']['tmp_name'], $target_file)) {
+        // Save candidate data to the database
+        $query = "INSERT INTO kandidat (nama, prodi, foto, visi, misi) VALUES ('$nama', '$prodi', '$target_file', '$visi', '$misi')";
+        if (mysqli_query($conn, $query)) {
+            $_SESSION['success_message'] = "Kandidat berhasil ditambahkan.";
+            header("Location: " . $_SERVER['PHP_SELF']);
+            exit();
         } else {
-            $error_message = "Maaf, terjadi kesalahan saat mengupload file. Pastikan folder 'uploads/' ada dan dapat ditulis.";
+            $_SESSION['error_message'] = "Terjadi kesalahan saat menambahkan kandidat: " . mysqli_error($conn);
+            header("Location: " . $_SERVER['PHP_SELF']);
+            exit();
         }
+    } else {
+        $_SESSION['error_message'] = "Maaf, terjadi kesalahan saat mengupload file. Pastikan folder 'uploads/' ada dan dapat ditulis.";
+        header("Location: " . $_SERVER['PHP_SELF']);
+        exit();
     }
 }
 
-// Proses penghapusan kandidat
+// Process candidate deletion
 if (isset($_GET['delete_id'])) {
     $delete_id = intval($_GET['delete_id']);
+    
+    // Get photo path to delete
+    $query_foto = "SELECT foto FROM kandidat WHERE id = $delete_id";
+    $result_foto = mysqli_query($conn, $query_foto);
+    $foto_kandidat = mysqli_fetch_assoc($result_foto);
+    
     $query = "DELETE FROM kandidat WHERE id = $delete_id";
     if (mysqli_query($conn, $query)) {
+        // Delete photo from server
+        if (file_exists($foto_kandidat['foto'])) {
+            unlink($foto_kandidat['foto']);
+        }
+        
         $_SESSION['success_message'] = "Kandidat berhasil dihapus.";
     } else {
-        $error_message = "Terjadi kesalahan saat menghapus kandidat: " . mysqli_error($conn);
+        $_SESSION['error_message'] = "Terjadi kesalahan saat menghapus kandidat: " . mysqli_error($conn);
     }
+    
+    header("Location: " . $_SERVER['PHP_SELF']);
+    exit();
 }
 
-// Proses pengeditan kandidat
-if (isset($_POST['edit_kandidat'])) {
+// Process candidate editing
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_kandidat'])) {
     $id = intval($_POST['id']);
     $nama = mysqli_real_escape_string($conn, $_POST['nama']);
     $prodi = mysqli_real_escape_string($conn, $_POST['prodi']);
     $visi = mysqli_real_escape_string($conn, $_POST['visi']);
     $misi = mysqli_real_escape_string($conn, $_POST['misi']);
     
-    // Cek apakah foto baru diupload
+    // Check if a new photo is uploaded
     if ($_FILES['foto']['name']) {
         $foto = $_FILES['foto']['name'];
-        $target_file = $target_dir . basename($foto);
+        $target_dir = "uploads/"; // Use the same directory
+        $target_file = $target_dir . uniqid() . '_' . basename($foto);
+        
+        // Get old photo to delete
+        $query_old_foto = "SELECT foto FROM kandidat WHERE id = $id";
+        $result_old_foto = mysqli_query($conn, $query_old_foto);
+        $old_foto = mysqli_fetch_assoc($result_old_foto);
+        
         if (move_uploaded_file($_FILES['foto']['tmp_name'], $target_file)) {
+            // Delete old photo if exists
+            if (file_exists($old_foto['foto'])) {
+                unlink($old_foto['foto']);
+            }
+            
             $query = "UPDATE kandidat SET nama='$nama', prodi='$prodi', foto='$target_file', visi='$visi', misi='$misi' WHERE id=$id";
         } else {
-            $error_message = "Terjadi kesalahan saat mengupload foto.";
+            $_SESSION['error_message'] = "Terjadi kesalahan saat mengupload foto.";
+            header("Location: " . $_SERVER['PHP_SELF']);
+            exit();
         }
     } else {
-        // Jika tidak ada foto baru, update tanpa mengubah foto
+        // If no new photo, update without changing the photo
         $query = "UPDATE kandidat SET nama='$nama', prodi='$prodi', visi='$visi', misi='$misi' WHERE id=$id";
     }
 
     if (mysqli_query($conn, $query)) {
         $_SESSION['success_message'] = "Kandidat berhasil diperbarui.";
-        $edit_success = true; // Set status edit berhasil
+        header("Location: " . $_SERVER['PHP_SELF']);
+        exit();
     } else {
-        $error_message = "Terjadi kesalahan saat memperbarui kandidat: " . mysqli_error($conn);
+        $_SESSION['error_message'] = "Terjadi kesalahan saat memperbarui kandidat: " . mysqli_error($conn);
+        header("Location: " . $_SERVER['PHP_SELF']);
+        exit();
     }
 }
 
-// Ambil data kandidat dan total voting
+// Get candidate data and total voting
 $query_kandidat = "SELECT * FROM kandidat";
 $result_kandidat = mysqli_query($conn, $query_kandidat);
 
-// Ambil total voting untuk setiap kandidat
+// Get total voting for each candidate
 $query_voting = "SELECT kandidat_id, COUNT(*) as total_voting FROM voting GROUP BY kandidat_id";
 $result_voting = mysqli_query($conn, $query_voting);
 
-// Menyimpan total voting dalam array
+// Store total voting in an array
 $total_voting = [];
 while ($voting = mysqli_fetch_assoc($result_voting)) {
     $total_voting[$voting['kandidat_id']] = $voting['total_voting'];
 }
+
+// Get messages from session
+$success_message = isset($_SESSION['success_message']) ? $_SESSION['success_message'] : '';
+$error_message = isset($_SESSION['error_message']) ? $_SESSION['error_message'] : '';
+
+// Clear messages from session after displaying
+unset($_SESSION['success_message']);
+unset($_SESSION['error_message']);
 ?>
 
 <!DOCTYPE html>
@@ -130,19 +168,80 @@ while ($voting = mysqli_fetch_assoc($result_voting)) {
 <head>
     <meta charset="UTF-8">
     <title>Dashboard Admin</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #f9fafb;
+            --text-dark: #1f2937;
+            --text-light: #6b7280;
+            --accent-color: #3b82f6;
+            --accent-hover: #2563eb;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            color: var(--text-dark);
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--accent-color), #4338ca);
+            color: white;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .footer {
+            background: linear-gradient(135deg, var(--accent-color), #4338ca);
+            color: white;
+            text-align: center;
+            padding: 1rem;
+            position: relative;
+            bottom: 0;
+            width: 100%;
+        }
+
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-primary {
+            background-color: var(--accent-color);
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .alert {
+            margin-bottom: 20px;
+        }
+
+        .card-img-top {
+            background: white;
+            border: none;
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+        }
+    </style>
 </head>
 <body>
+    <div class="header">
+        <h2>Selamat Datang, Admin</h2>
+    </div>
+
     <div class="container mt-5">
         <div class="row">
             <div class="col-md-12">
-                <h2>Selamat Datang, Admin</h2>
-                <hr>
-
                 <!-- Menambahkan Kandidat -->
                 <h3>Tambah Kandidat</h3>
-                <?php if (isset($_SESSION['success_message'])) { ?>
-                    <div class="alert alert-success"><?php echo $_SESSION['success_message']; unset($_SESSION['success_message']); ?></div>
+                <?php if ($success_message) { ?>
+                    <div class="alert alert-success"><?php echo $success_message; ?></div>
                 <?php } ?>
                 <?php if ($error_message) { ?>
                     <div class="alert alert-danger"><?php echo $error_message; ?></div>
@@ -150,14 +249,14 @@ while ($voting = mysqli_fetch_assoc($result_voting)) {
                 <form method="POST" enctype="multipart/form-data">
                     <div class="mb-3">
                         <label for="nama" class="form-label">Nama Kandidat</label>
-                        <input type="text" class="form-control" id="nama" name="nama" value="<?php echo isset($_POST['nama']) ? $_POST['nama'] : ''; ?>" required>
+                        <input type="text" class="form-control" id="nama" name="nama" required>
                     </div>
                     <div class="mb-3">
                         <label for="prodi" class="form-label">Prodi</label>
                         <select class="form-control" id="prodi" name="prodi" required>
-                            <option value="Teknologi Bank Darah" <?php echo (isset($_POST['prodi']) && $_POST['prodi'] == 'Teknologi Bank Darah') ? 'selected' : ''; ?>>Teknologi Bank Darah</option>
-                            <option value="Teknologi Laboratorium Medis" <?php echo (isset($_POST['prodi']) && $_POST['prodi'] == 'Teknologi Laboratorium Medis') ? 'selected' : ''; ?>>Teknologi Laboratorium Medis</option>
-                            <option value="Sarjana Terapan Teknologi Laboratorium Medis" <?php echo (isset($_POST['prodi']) && $_POST['prodi'] == 'Sarjana Terapan Teknologi Laboratorium Medis') ? 'selected' : ''; ?>>Sarjana Terapan Teknologi Laboratorium Medis</option>
+                            <option value="Teknologi Bank Darah">Teknologi Bank Darah</option>
+                            <option value="Teknologi Laboratorium Medis">Teknologi Laboratorium Medis</option>
+                            <option value="Sarjana Terapan Teknologi Laboratorium Medis">Sarjana Terapan Teknologi Laboratorium Medis</option>
                         </select>
                     </div>
                     <div class="mb-3">
@@ -166,11 +265,11 @@ while ($voting = mysqli_fetch_assoc($result_voting)) {
                     </div>
                     <div class="mb-3">
                         <label for="visi" class="form-label">Visi</label>
-                        <textarea class="form-control" id="visi" name="visi" rows="2" required><?php echo isset($_POST['visi']) ? $_POST['visi'] : ''; ?></textarea>
+                        <textarea class="form-control" id="visi" name="visi" rows="2" required></textarea>
                     </div>
                     <div class="mb-3">
                         <label for="misi" class="form-label">Misi</label>
-                        <textarea class="form-control" id="misi" name="misi" rows="2" required><?php echo isset($_POST['misi']) ? $_POST['misi'] : ''; ?></textarea>
+                        <textarea class="form-control" id="misi" name="misi" rows="2" required></textarea>
                     </div>
                     <button type="submit" name="add_kandidat" class="btn btn-primary">Tambah Kandidat</button>
                 </form>
@@ -180,60 +279,65 @@ while ($voting = mysqli_fetch_assoc($result_voting)) {
                 <!-- Melihat Kandidat dan Total Voting -->
                 <h3>Kandidat dan Total Voting</h3>
                 <div class="row">
-                    <?php while($kandidat = mysqli_fetch_assoc($result_kandidat)) { ?>
+                    <?php 
+                    // Reset pointer result set
+                    mysqli_data_seek($result_kandidat, 0);
+                    while($kandidat = mysqli_fetch_assoc($result_kandidat)) { 
+                    ?>
                         <div class="col-md-4 mb-4">
                             <div class="card">
                                 <img src="<?php echo $kandidat['foto']; ?>" class="card-img-top" alt="Foto Kandidat">
                                 <div class="card-body">
                                     <h5 class="card-title"><?php echo $kandidat['nama']; ?></h5>
-                                    <p class="card-text"><strong>Visi:</strong> <?php echo isset($kandidat['visi']) ? $kandidat['visi'] : 'Tidak ada visi'; ?></p>
-                                    <p class="card-text"><strong>Misi:</strong> <?php echo isset($kandidat['misi']) ? $kandidat['misi'] : 'Tidak ada misi'; ?></p>
+                                    <p class="card-text"><strong>Prodi:</strong> <?php echo $kandidat['prodi']; ?></p>
+                                    <p class="card-text"><strong>Visi:</strong> <?php echo $kandidat['visi']; ?></p>
+                                    <p class="card-text"><strong>Misi:</strong> <?php echo $kandidat['misi']; ?></p>
                                     <p><strong>Total Voting: </strong>
                                         <?php echo isset($total_voting[$kandidat['id']]) ? $total_voting[$kandidat['id']] : 0; ?>
                                     </p>
                                     <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#editModal<?php echo $kandidat['id']; ?>">Edit</button>
-                                    <a href="dashboard_admin.php?delete_id=<?php echo $kandidat['id']; ?>" class="btn btn-danger" onclick="return confirm('Apakah Anda yakin ingin menghapus kandidat ini?');">Hapus</a>
+                                    <a href="?delete_id=<?php echo $kandidat['id']; ?>" class="btn btn-danger" onclick="return confirm('Apakah Anda yakin ingin menghapus kandidat ini?');">Hapus</a>
                                 </div>
                             </div>
-                        </div>
 
-                        <!-- Modal Edit Kandidat -->
-                        <div class="modal fade" id="editModal<?php echo $kandidat['id']; ?>" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
-                            <div class="modal-dialog">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title" id="editModalLabel">Edit Kandidat</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <form method="POST" enctype="multipart/form-data">
-                                            <input type="hidden" name="id" value="<?php echo $kandidat['id']; ?>">
-                                            <div class="mb-3">
-                                                <label for="nama" class="form-label">Nama Kandidat</label>
-                                                <input type="text" class="form-control" id="nama" name="nama" value="<?php echo $kandidat['nama']; ?>" required>
-                                            </div>
-                                            <div class="mb-3">
-                                                <label for="prodi" class="form-label">Prodi</label>
-                                                <select class="form-control" id="prodi" name="prodi" required>
-                                                    <option value="Teknologi Bank Darah" <?php echo ($kandidat['prodi'] == 'Teknologi Bank Darah') ? 'selected' : ''; ?>>Teknologi Bank Darah</option>
-                                                    <option value="Teknologi Laboratorium Medis" <?php echo ($kandidat['prodi'] == 'Teknologi Laboratorium Medis') ? 'selected' : ''; ?>>Teknologi Laboratorium Medis</option>
-                                                    <option value="Sarjana Terapan Teknologi Laboratorium Medis" <?php echo ($kandidat['prodi'] == 'Sarjana Terapan Teknologi Laboratorium Medis') ? 'selected' : ''; ?>>Sarjana Terapan Teknologi Laboratorium Medis</option>
-                                                </select>
-                                            </div>
-                                            <div class="mb-3">
-                                                <label for="foto" class="form-label">Foto Kandidat (Kosongkan jika tidak ingin mengubah)</label>
-                                                <input type="file" class="form-control" id="foto" name="foto">
-                                            </div>
-                                            <div class="mb-3">
-                                                <label for="visi" class="form-label">Visi</label>
-                                                <textarea class="form-control" id="visi" name="visi" rows="2" required><?php echo isset($kandidat['visi']) ? $kandidat['visi'] : ''; ?></textarea>
-                                            </div>
-                                            <div class="mb-3">
-                                                <label for="misi" class="form-label">Misi</label>
-                                                <textarea class="form-control" id="misi" name="misi" rows="2" required><?php echo isset($kandidat['misi']) ? $kandidat['misi'] : ''; ?></textarea>
-                                            </div>
-                                            <button type="submit" name="edit_kandidat" class="btn btn-primary">Perbarui Kandidat</button>
-                                        </form>
+                            <!-- Modal Edit Kandidat -->
+                            <div class="modal fade" id="editModal<?php echo $kandidat['id']; ?>" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="editModalLabel">Edit Kandidat</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <form method="POST" enctype="multipart/form-data">
+                                                <input type="hidden" name="id" value="<?php echo $kandidat['id']; ?>">
+                                                <div class="mb-3">
+                                                    <label for="nama" class="form-label">Nama Kandidat</label>
+                                                    <input type="text" class="form-control" id="nama" name="nama" value="<?php echo $kandidat['nama']; ?>" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="prodi" class="form-label">Prodi</label>
+                                                    <select class="form-control" id="prodi" name="prodi" required>
+                                                        <option value="Teknologi Bank Darah" <?php echo ($kandidat['prodi'] == 'Teknologi Bank Darah') ? 'selected' : ''; ?>>Teknologi Bank Darah</option>
+                                                        <option value="Teknologi Laboratorium Medis" <?php echo ($kandidat['prodi'] == 'Teknologi Laboratorium Medis') ? 'selected' : ''; ?>>Teknologi Laboratorium Medis</option>
+                                                        <option value="Sarjana Terapan Teknologi Laboratorium Medis" <?php echo ($kandidat['prodi'] == 'Sarjana Terapan Teknologi Laboratorium Medis') ? 'selected' : ''; ?>>Sarjana Terapan Teknologi Laboratorium Medis</option>
+                                                    </select>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="foto" class="form-label">Foto Kandidat (Kosongkan jika tidak ingin mengubah)</label>
+                                                    <input type="file" class="form-control" id="foto" name="foto">
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="visi" class="form-label">Visi</label>
+                                                    <textarea class="form-control" id="visi" name="visi" rows="2" required><?php echo $kandidat['visi']; ?></textarea>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="misi" class="form-label">Misi</label>
+                                                    <textarea class="form-control" id="misi" name="misi" rows="2" required><?php echo $kandidat['misi']; ?></textarea>
+                                                </div>
+                                                <button type="submit" name="edit_kandidat" class="btn btn-primary">Perbarui Kandidat</button>
+                                            </form>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -244,6 +348,10 @@ while ($voting = mysqli_fetch_assoc($result_voting)) {
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <div class="footer">
+        <p>&copy; 2024 Himpunan Mahasiswa Poltekes Kemenkes Semarang. All rights reserved.</p>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

@@ -1,52 +1,224 @@
 <?php
+// Start session and include database configuration
 session_start();
 require_once 'config/database.php';
 
-// Cek apakah user sudah login
-if (!isset($_SESSION['nama'])) {
+// Check if user is logged in
+if (!isset($_SESSION['nama']) || !isset($_SESSION['prodi'])) {
     header("Location: login.php");
     exit();
 }
 
-// Ambil kandidat sesuai prodi
-$prodi = $_SESSION['prodi'];
+// Sanitize the prodi input to prevent SQL injection
+$prodi = mysqli_real_escape_string($conn, $_SESSION['prodi']);
+
+// Prepare the query to fetch candidates
 $query_kandidat = "SELECT * FROM kandidat WHERE prodi = '$prodi'";
 $result_kandidat = mysqli_query($conn, $query_kandidat);
-?>
 
+// Check if query execution was successful
+if (!$result_kandidat) {
+    $error_message = "Database query failed: " . mysqli_error($conn);
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard Voting</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="css/styles.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HIMA | Poltekes Kemenkes Semarang</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #f9fafb;
+            --text-dark: #1f2937;
+            --text-light: #6b7280;
+            --accent-color: #3b82f6;
+            --accent-hover: #2563eb;
+        }
+
+        html, body {
+            height: 100%; /* Ensure the body takes the full height */
+            margin: 0; /* Remove default margin */
+        }
+
+        body {
+            display: flex;
+            flex-direction: column; /* Stack children vertically */
+        }
+
+        .container {
+            flex: 1; /* Allow the container to grow and fill the available space */
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            color: var(--text-dark);
+        }
+
+        .voting-header {
+            background: linear-gradient(135deg, var(--accent-color), #4338ca);
+            color: white;
+            padding: 2rem 0; /* Reduced padding for a more compact look */
+            margin-bottom: 1rem; /* Reduced margin */
+            clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5); /* Added text shadow for better readability */
+        }
+
+        .display-5 {
+            font-size: 2rem; /* Adjusted font size for the main title */
+        }
+
+        .display-6 {
+            font-size: 1.5rem; /* Adjusted font size for the second title */
+        }
+
+        .display-7 {
+            font-size: 1.2rem; /* Adjusted font size for the third title */
+        }
+
+        .lead {
+            font-size: 1rem; /* Slightly smaller font size for the welcome message */
+            margin-top: 0.5rem; /* Reduced margin for spacing */
+        }
+
+        .candidate-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+        }
+
+        .candidate-card {
+            background: white;
+            border: none;
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+        }
+
+        .candidate-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+        }
+
+        .candidate-card-image {
+            height: 250px;
+            width: 100%;
+            object-fit: contain;
+            transition: all 0.3s ease;
+        }
+
+        .candidate-card:hover .candidate-card-image {
+            filter: grayscale(0%) contrast(110%);
+        }
+
+        .candidate-info {
+            padding: 1rem;
+        }
+
+        .btn-vote {
+            background-color: var(--accent-color);
+            border: none;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .btn-vote:hover {
+            background-color: var(--accent-hover);
+            transform: scale(1.05);
+        }
+
+        .vision-mission {
+            max-height: 150px;
+            overflow-y: auto;
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        hr {
+            bordetop: 20px solid var(--text-light);
+            opacity: 1;
+            margin: 0;
+        }
+
+        footer {
+            background: linear-gradient(135deg, var(--accent-color), #4338ca); 
+            color: white; 
+            position: relative;
+            bottom: 0; 
+            width: 100%;
+        }
+
+        footer p {
+            margin: 0;
+            padding: 10px 0;
+            font-size: 14px;
+        }
+
+        @media (max-width: 768px) {
+            .candidate-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 <body>
-    <div class="container mt-5">
+    <header class="voting-header text-center">
+        <div class="container">
+            <h1 class="display-5 fw-bold">Pemilihan Gubernur Himpunan Mahasiswa</h1>
+            <h4 class="display-6 fw-bold">Jurusan Analis Kesehatan</h4>
+            <h5 class="display-7 fw-bold">Poltekkes Kemenkes Semarang</h5>
+            <p class="lead">Welcome, <strong><?php echo htmlspecialchars($_SESSION['nama']); ?> | <?php echo htmlspecialchars($_SESSION['prodi']); ?></strong></p>
+        </div>
+    </header>
+
+    <div class="container">
         <div class="row">
-            <div class="col-md-12">
-                <h2>Selamat Datang, <?php echo $_SESSION['nama']; ?></h2>
-                <h4>Prodi: <?php echo $_SESSION['prodi']; ?></h4>
-                <hr>
-                <h3>Kandidat Gubernur HIMA</h3>
-                <div class="row">
-                    <?php while($kandidat = mysqli_fetch_assoc($result_kandidat)) { ?>
-                        <div class="col-md-4 mb-4">
-                            <div class="card">
-                                <img src="<?php echo $kandidat['foto']; ?>" class="card-img-top" alt="Foto Kandidat">
-                                <div class="card-body">
-                                    <h5 class="card-title"><?php echo $kandidat['nama']; ?></h5>
-                                    <p class="card-text"><?php echo $kandidat['visi_misi']; ?></p>
-                                    <a href="voting.php?kandidat_id=<?php echo $kandidat['id']; ?>" class="btn btn-primary">Pilih</a>
+            <?php if ($result_kandidat && mysqli_num_rows($result_kandidat) > 0): ?>
+                <?php while($kandidat = mysqli_fetch_assoc($result_kandidat)) { ?>
+                    <div class="col-md-4">
+                        <div class="candidate-card mb-4">
+                            <img src="<?php echo htmlspecialchars($kandidat['foto']); ?>" 
+                                 class="card-img-top candidate-card-image" 
+                                 alt="Kandidat <?php echo htmlspecialchars($kandidat['nama']); ?>">
+                            <hr>
+                            <div class="candidate-info">
+                                <h5 class="card-title text-center mb-3"><?php echo htmlspecialchars($kandidat['nama']); ?></h5>
+                                
+                                <div class="vision-mission mb-3">
+                                    <h6 class="text-muted">Vision</h6>
+                                    <p><?php echo htmlspecialchars($kandidat['visi'] ?? 'No vision stated'); ?></p>
+                                    
+                                    <h6 class="text-muted mt-2">Mission</h6>
+                                    <p><?php echo htmlspecialchars($kandidat['misi'] ?? 'No mission stated'); ?></p>
+                                </div>
+                                
+                                <div class="text-center">
+                                    <a href="voting.php?kandidat_id=<?php echo intval($kandidat['id']); ?>" 
+                                       class="btn btn-vote btn-primary px-4">
+                                        Vote Now
+                                    </a>
                                 </div>
                             </div>
                         </div>
-                    <?php } ?>
+                    </div>
+                <?php } ?>
+            <?php else: ?>
+                <div class="col-12">
+                    <div class="alert alert-info text-center">
+                        No candidates available for your study program.
+                    </div>
                 </div>
-            </div>
+            <?php endif; ?>
         </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <footer class="text-center py-3">
+        <p>&copy; 2024 Himpunan Mahasiswa Poltekes Kemenkes Semarang. All rights reserved.</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
