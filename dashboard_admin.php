@@ -2,31 +2,31 @@
 session_start();
 require_once 'config/database.php';
 
-// Check if admin is logged in
+
 if (!isset($_SESSION['admin_id'])) {
     header("Location: login_admin.php");
     exit();
 }
 
-// Initialize variables for messages
+
 $success_message = '';
 $error_message = '';
 
-// Process adding candidate
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_kandidat'])) {
     $nama = mysqli_real_escape_string($conn, $_POST['nama']);
     $prodi = mysqli_real_escape_string($conn, $_POST['prodi']);
     $visi = mysqli_real_escape_string($conn, $_POST['visi']);
     $misi = mysqli_real_escape_string($conn, $_POST['misi']);
     
-    // Process photo upload
+    
     $foto = $_FILES['foto']['name'];
-    $target_dir = "uploads/"; // Ensure this folder exists and is writable
-    $target_file = $target_dir . uniqid() . '_' . basename($foto); // Add uniqid to prevent duplicate filenames
+    $target_dir = "uploads/"; 
+    $target_file = $target_dir . uniqid() . '_' . basename($foto); 
     $uploadOk = 1;
     $imageFileType = strtolower(pathinfo($target_file, PATHINFO_EXTENSION));
 
-    // Check if the uploaded file is an actual image
+
     $check = getimagesize($_FILES['foto']['tmp_name']);
     if ($check === false) {
         $_SESSION['error_message'] = "File yang diupload bukan gambar.";
@@ -34,21 +34,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_kandidat'])) {
         exit();
     }
 
-    // Check file size
     if ($_FILES['foto']['size'] > 500000) { // 500KB
         $_SESSION['error_message'] = "Maaf, ukuran file terlalu besar.";
         header("Location: " . $_SERVER['PHP_SELF']);
         exit();
     }
 
-    // Allow certain file formats
     if (!in_array($imageFileType, ['jpg', 'png', 'jpeg', 'gif'])) {
         $_SESSION['error_message'] = "Maaf, hanya file JPG, JPEG, PNG & GIF yang diizinkan.";
         header("Location: " . $_SERVER['PHP_SELF']);
         exit();
     }
 
-    // Upload file
+
     if (move_uploaded_file($_FILES['foto']['tmp_name'], $target_file)) {
         // Save candidate data to the database
         $query = "INSERT INTO kandidat (nama, prodi, foto, visi, misi) VALUES ('$nama', '$prodi', '$target_file', '$visi', '$misi')";
@@ -68,11 +66,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_kandidat'])) {
     }
 }
 
-// Process candidate deletion
+
 if (isset($_GET['delete_id'])) {
     $delete_id = intval($_GET['delete_id']);
     
-    // Get photo path to delete
+
     $query_foto = "SELECT foto FROM kandidat WHERE id = $delete_id";
     $result_foto = mysqli_query($conn, $query_foto);
     $foto_kandidat = mysqli_fetch_assoc($result_foto);
@@ -93,7 +91,7 @@ if (isset($_GET['delete_id'])) {
     exit();
 }
 
-// Process candidate editing
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_kandidat'])) {
     $id = intval($_POST['id']);
     $nama = mysqli_real_escape_string($conn, $_POST['nama']);
@@ -101,13 +99,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_kandidat'])) {
     $visi = mysqli_real_escape_string($conn, $_POST['visi']);
     $misi = mysqli_real_escape_string($conn, $_POST['misi']);
     
-    // Check if a new photo is uploaded
+    
     if ($_FILES['foto']['name']) {
         $foto = $_FILES['foto']['name'];
         $target_dir = "uploads/"; // Use the same directory
         $target_file = $target_dir . uniqid() . '_' . basename($foto);
         
-        // Get old photo to delete
+       
         $query_old_foto = "SELECT foto FROM kandidat WHERE id = $id";
         $result_old_foto = mysqli_query($conn, $query_old_foto);
         $old_foto = mysqli_fetch_assoc($result_old_foto);
@@ -125,7 +123,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_kandidat'])) {
             exit();
         }
     } else {
-        // If no new photo, update without changing the photo
+        
         $query = "UPDATE kandidat SET nama='$nama', prodi='$prodi', visi='$visi', misi='$misi' WHERE id=$id";
     }
 

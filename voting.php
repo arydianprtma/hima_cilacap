@@ -2,7 +2,7 @@
 session_start();
 require_once 'config/database.php';
 
-// Cek apakah user sudah login
+
 if (!isset($_SESSION['nama'])) {
     header("Location: login.php");
     exit();

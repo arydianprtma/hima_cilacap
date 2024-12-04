@@ -2,20 +2,20 @@
 session_start();
 require_once 'config/database.php';
 
-// Check if user is logged in
+
 if (!isset($_SESSION['nama']) || !isset($_SESSION['prodi'])) {
     header("Location: login.php");
     exit();
 }
 
-// Sanitize the prodi input to prevent SQL injection
+
 $prodi = mysqli_real_escape_string($conn, $_SESSION['prodi']);
 
-// Prepare the query to fetch candidates
+
 $query_kandidat = "SELECT * FROM kandidat WHERE prodi = '$prodi'";
 $result_kandidat = mysqli_query($conn, $query_kandidat);
 
-// Check if query execution was successful
+
 if (!$result_kandidat) {
     $error_message = "Database query failed: " . mysqli_error($conn);
 }
@@ -38,13 +38,13 @@ if (!$result_kandidat) {
         }
 
         html, body {
-            height: 100%; /* Ensure the body takes the full height */
-            margin: 0; /* Remove default margin */
+            height: 100%; 
+            margin: 0; 
         }
 
         body {
             display: flex;
-            flex-direction: column; /* Stack children vertically */
+            flex-direction: column; 
             background-color: var(--bg-primary);
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
             color: var(--text-dark);
@@ -53,27 +53,27 @@ if (!$result_kandidat) {
         .voting-header {
             background: linear-gradient(135deg, var(--accent-color), #4338ca);
             color: white;
-            padding: 2rem 0; /* Reduced padding for a more compact look */
-            margin-bottom: 1rem; /* Reduced margin */
+            padding: 2rem 0;
+            margin-bottom: 1rem
             clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5); /* Added text shadow for better readability */
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5); 
         }
 
         .display-5 {
-            font-size: 2rem; /* Adjusted font size for the main title */
+            font-size: 2rem; 
         }
 
         .display-6 {
-            font-size: 1.5rem; /* Adjusted font size for the second title */
+            font-size: 1.5rem; 
         }
 
         .display-7 {
-            font-size: 1.2rem; /* Adjusted font size for the third title */
+            font-size: 1.2rem; 
         }
 
         .lead {
-            font-size: 1rem; /* Slightly smaller font size for the welcome message */
-            margin-top: 0.5rem; /* Reduced margin for spacing */
+            font-size: 1rem; 
+            margin-top: 0.5rem; 
         }
 
         .candidate-grid {
@@ -96,9 +96,9 @@ if (!$result_kandidat) {
         }
 
         .candidate-card-image {
-            height: 300px; /* Set a fixed height */
+            height: 300px; 
             width: 100%;
-            object-fit: cover; /* Ensure the image covers the area without distortion */
+            object-fit: cover; 
             transition: all 0.3s ease;
         }
 

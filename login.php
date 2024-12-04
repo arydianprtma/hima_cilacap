@@ -2,7 +2,7 @@
 session_start();
 require_once 'config/database.php';
 
-// Definisi prodi sesuai permintaan
+
 $daftar_prodi = [
     'Teknologi Bank Darah',
     'Teknologi Laboratorium Medis', 

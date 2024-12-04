@@ -47,7 +47,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 }
 ?>
 
-<!-- Form Register Admin -->
+=
 <!DOCTYPE html>
 <html lang="en">
 <head>

@@ -13,7 +13,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (mysqli_num_rows($result) == 1) {
         $admin = mysqli_fetch_assoc($result);
         
-        // Verifikasi password
+
         if (password_verify($password, $admin['password'])) {
             $_SESSION['admin_id'] = $admin['id']; // Simpan ID admin ke session
             $_SESSION['username'] = $admin['username'];
