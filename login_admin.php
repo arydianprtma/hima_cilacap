@@ -60,6 +60,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             </div>
                             <button type="submit" class="btn btn-primary w-100">Login</button>
                         </form>
+                        <p>Belum punya akun? <a href="register_admin.php">Daftar disini</a></p>
                     </div>
                 </div>
             </div>
