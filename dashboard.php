@@ -51,7 +51,7 @@ if (!$result_kandidat) {
         }
 
         body {
-        background-image: url('uploads/kampus.jpg'); /* Ganti dengan path gambar kamu */
+        background-image: url('src/kampus.jpg'); /* Ganti dengan path gambar kamu */
         background-size: cover; /* Supaya gambar memenuhi seluruh layar */
         background-position: center; /* Posisikan di tengah */
         background-repeat: no-repeat; /* Jangan ulang gambar */
