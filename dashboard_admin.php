@@ -242,7 +242,6 @@ unset($_SESSION['error_message']);
 
         .card-body{
             flex-grow: 1;
-            display: flex;
             flex-direction: column; /* Mengatur isi body card secara vertikal */
             justify-content: space-between; /* Menjaga jarak antara elemen */
         }
