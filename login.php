@@ -45,7 +45,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 </head>
 <style>
     body {
-        background-image: url("src/background.png");
+        background-image: url("src/kampus.jpg");
         background-repeat: no-repeat;
         background-size: cover;
         background-position: center;
