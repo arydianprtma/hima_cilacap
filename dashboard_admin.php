@@ -233,20 +233,6 @@ unset($_SESSION['error_message']);
             flex-direction: column;
         }
 
-        .card img {
-            object-fit: cover; /* Memastikan gambar menyesuaikan dengan ukuran card */
-            height: 200px; /* Menetapkan tinggi gambar */
-            border-top-left-radius: 12px;
-            border-top-right-radius: 12px;
-        }
-
-        .card-body{
-            flex-grow: 1;
-            flex-direction: column; /* Mengatur isi body card secara vertikal */
-            justify-content: space-between; /* Menjaga jarak antara elemen */
-        }
-
-
         .card:hover {
             transform: translateY(-5px);
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
