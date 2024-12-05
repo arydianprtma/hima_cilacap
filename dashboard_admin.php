@@ -2,16 +2,13 @@
 session_start();
 require_once 'config/database.php';
 
-
 if (!isset($_SESSION['admin_id'])) {
     header("Location: login_admin.php");
     exit();
 }
 
-
 $success_message = '';
 $error_message = '';
-
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_kandidat'])) {
     $nama = mysqli_real_escape_string($conn, $_POST['nama']);
@@ -19,13 +16,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_kandidat'])) {
     $visi = mysqli_real_escape_string($conn, $_POST['visi']);
     $misi = mysqli_real_escape_string($conn, $_POST['misi']);
     
-    
     $foto = $_FILES['foto']['name'];
     $target_dir = "uploads/"; 
     $target_file = $target_dir . uniqid() . '_' . basename($foto); 
     $uploadOk = 1;
     $imageFileType = strtolower(pathinfo($target_file, PATHINFO_EXTENSION));
-
 
     $check = getimagesize($_FILES['foto']['tmp_name']);
     if ($check === false) {
@@ -46,7 +41,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_kandidat'])) {
         exit();
     }
 
-
     if (move_uploaded_file($_FILES['foto']['tmp_name'], $target_file)) {
         // Save candidate data to the database
         $query = "INSERT INTO kandidat (nama, prodi, foto, visi, misi) VALUES ('$nama', '$prodi', '$target_file', '$visi', '$misi')";
@@ -66,11 +60,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_kandidat'])) {
     }
 }
 
-
 if (isset($_GET['delete_id'])) {
     $delete_id = intval($_GET['delete_id']);
     
-
     $query_foto = "SELECT foto FROM kandidat WHERE id = $delete_id";
     $result_foto = mysqli_query($conn, $query_foto);
     $foto_kandidat = mysqli_fetch_assoc($result_foto);
@@ -91,7 +83,6 @@ if (isset($_GET['delete_id'])) {
     exit();
 }
 
-
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_kandidat'])) {
     $id = intval($_POST['id']);
     $nama = mysqli_real_escape_string($conn, $_POST['nama']);
@@ -99,13 +90,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_kandidat'])) {
     $visi = mysqli_real_escape_string($conn, $_POST['visi']);
     $misi = mysqli_real_escape_string($conn, $_POST['misi']);
     
-    
     if ($_FILES['foto']['name']) {
         $foto = $_FILES['foto']['name'];
         $target_dir = "uploads/"; // Use the same directory
         $target_file = $target_dir . uniqid() . '_' . basename($foto);
         
-       
         $query_old_foto = "SELECT foto FROM kandidat WHERE id = $id";
         $result_old_foto = mysqli_query($conn, $query_old_foto);
         $old_foto = mysqli_fetch_assoc($result_old_foto);
@@ -123,7 +112,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_kandidat'])) {
             exit();
         }
     } else {
-        
+        // If no new photo, update without changing the photo
         $query = "UPDATE kandidat SET nama='$nama', prodi='$prodi', visi='$visi', misi='$misi' WHERE id=$id";
     }
 
@@ -181,18 +170,52 @@ unset($_SESSION['error_message']);
             background-color: var(--bg-primary);
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
             color: var(--text-dark);
+            background-image: url('src/kampus.jpg'); /* Ganti dengan path gambar kamu */
+            background-size: cover; /* Supaya gambar memenuhi seluruh layar */
+            background-position: center; /* Posisikan di tengah */
+            background-repeat: no-repeat; /* Jangan ulang gambar */
+            background-attachment: fixed; /* Biar gambar tetap diam saat di-scroll */
+        }
+
+        h3 {
+        background-color: rgba(255, 255, 255, 0.8); /* Warna putih semi-transparan */
+        color: #1f2937; /* Warna teks gelap agar kontras */
+        padding: 5px 15px; /* Memberikan ruang di sekitar teks */
+        border-radius: 8px; /* Sudut melengkung */
+        display: inline-block; /* Supaya hanya selebar teks */
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Bayangan lembut */
+        font-weight: bold; /* Supaya lebih menonjol */
+        font-size: 1.5rem; /* Ukuran teks yang sesuai */
         }
 
         .header {
-            background: linear-gradient(135deg, var(--accent-color), #4338ca);
+            background: linear-gradient(135deg, var(--accent-color), #e79cff);
             color: white;
-            padding: 1rem;
-            text-align: center;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
         }
 
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+        }
+
+        .btn-logout {
+            background-color: #3b82f6;
+            border-color: #3b82f6;
+            color: white;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        .btn-logout:hover {
+            background-color: #2563eb;
+            transform: scale(1.05);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
         .footer {
-            background: linear-gradient(135deg, var(--accent-color), #4338ca);
+            background: linear-gradient(135deg, #e79cff, #4338ca);
             color: white;
             text-align: center;
             padding: 1rem;
@@ -206,7 +229,24 @@ unset($_SESSION['error_message']);
             border-radius: 12px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            flex-direction: column;
         }
+
+        .card img {
+            object-fit: cover; /* Memastikan gambar menyesuaikan dengan ukuran card */
+            height: 200px; /* Menetapkan tinggi gambar */
+            border-top-left-radius: 12px;
+            border-top-right-radius: 12px;
+        }
+
+        .card-body{
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column; /* Mengatur isi body card secara vertikal */
+            justify-content: space-between; /* Menjaga jarak antara elemen */
+        }
+
 
         .card:hover {
             transform: translateY(-5px);
@@ -244,6 +284,13 @@ unset($_SESSION['error_message']);
             font-weight: bold;
         }
 
+        .container {
+        display: flex;           /* Aktifkan flexbox */
+        flex-direction: column;  /* Elemen disusun secara vertikal */
+        align-items: start;      /* Elemen rata kiri */
+        gap: 10px;               /* Jarak antara tombol dan teks */
+        }
+
         @media (max-width: 768px) {
             .card {
                 margin-bottom: 20px;
@@ -253,9 +300,11 @@ unset($_SESSION['error_message']);
 </head>
 <body>
     <div class="header">
-        <h2>Selamat Datang, Admin</h2>
+        <div class="header-content">
+            <h2>Selamat Datang,<strong> <?php echo htmlspecialchars($_SESSION['nama']); ?> | Admin</strong> </h2>
+            <a href="logout_admin.php" class="btn btn-danger">Log Out</a>
+        </div>
     </div>
-
     <div class="container mt-5">
         <div class="row">
             <div class="col-md-12">
@@ -263,7 +312,9 @@ unset($_SESSION['error_message']);
                 <button class="btn btn-primary mb-4" data-bs-toggle="modal" data-bs-target="#addCandidateModal">Tambah Kandidat</button>
 
                 <!-- Card untuk Menampilkan Kandidat -->
-                <h3>Kandidat dan Total Voting</h3>
+                <div class="container">
+                    <h3>Kandidat dan Total Voting</h3>
+                </div>
                 <div class="row">
                     <?php 
                     // Reset pointer result set
@@ -310,8 +361,8 @@ unset($_SESSION['error_message']);
                                                     </select>
                                                 </div>
                                                 <div class="mb-3">
-                                                    <label for="foto" class="form-label">Foto Kandidat (Kosongkan jika tidak ingin mengubah)</label>
-                                                    <input type="file" class="form-control" id="foto" name="foto">
+                                                    <label for="foto" class="form-label">Foto Kandidat (Kosongkan jika tidak ingin mengganti)</label>
+                                                    <input type="file" class="form-control" id="foto" name="foto" accept="image/*">
                                                 </div>
                                                 <div class="mb-3">
                                                     <label for="visi" class="form-label">Visi</label>
