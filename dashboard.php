@@ -50,6 +50,16 @@ if (!$result_kandidat) {
             color: var(--text-dark);
         }
 
+        body {
+        background-image: url('uploads/kampus.jpg'); /* Ganti dengan path gambar kamu */
+        background-size: cover; /* Supaya gambar memenuhi seluruh layar */
+        background-position: center; /* Posisikan di tengah */
+        background-repeat: no-repeat; /* Jangan ulang gambar */
+        background-attachment: fixed; /* Biar gambar tetap diam saat di-scroll */
+        font-family: 'Inter', sans-serif;
+        color: var(--text-dark);
+        }
+
         .voting-header {
             background: linear-gradient(135deg, var(--accent-color), #4338ca);
             color: white;
