@@ -48,20 +48,15 @@ if (!$result_kandidat) {
             background-color: var(--bg-primary);
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
             color: var(--text-dark);
-        }
-
-        body {
-        background-image: url('src/kampus.jpg'); /* Ganti dengan path gambar kamu */
-        background-size: cover; /* Supaya gambar memenuhi seluruh layar */
-        background-position: center; /* Posisikan di tengah */
-        background-repeat: no-repeat; /* Jangan ulang gambar */
-        background-attachment: fixed; /* Biar gambar tetap diam saat di-scroll */
-        font-family: 'Inter', sans-serif;
-        color: var(--text-dark);
+            background-image: url('src/kampus.jpg'); /* Ganti dengan path gambar kamu */
+            background-size: cover; /* Supaya gambar memenuhi seluruh layar */
+            background-position: center; /* Posisikan di tengah */
+            background-repeat: no-repeat; /* Jangan ulang gambar */
+            background-attachment: fixed; /* Biar gambar tetap diam saat di-scroll */
         }
 
         .voting-header {
-            background: linear-gradient(135deg, var(--accent-color), #4338ca);
+            background: linear-gradient(135deg, var(--accent-color), #e79cff);
             color: white;
             padding: 2rem 0;
             margin-bottom: 1rem
@@ -149,7 +144,7 @@ if (!$result_kandidat) {
         }
 
         footer {
-            background: linear-gradient(135deg, var(--accent-color), #4338ca); 
+            background: linear-gradient(135deg, #e79cff, #4338ca);
             color: white; 
             position: relative;
             bottom: 0; 
